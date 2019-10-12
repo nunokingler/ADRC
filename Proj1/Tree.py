@@ -40,6 +40,34 @@ class Tree:
             currNode=nexthop
         currNode.set_value(value)
 
+    def deleteNode(self,binary):
+        lastAnchor=self.node
+        lastAnchor_i=0
+        currNode=self.node
+        for i in range(len(binary)):
+            if currNode.left!=None and currNode.right!=None:
+                lastAnchor=currNode
+                lastAnchor_i=i
+            if binary[i]=='1':
+                nexthop=currNode.right
+            else:
+                nexthop=currNode.left
+            if nexthop==None:
+                return
+            else:
+                currNode=nexthop
+        last_node=currNode
+        currNode=lastAnchor
+        for i in range(lastAnchor_i,len(binary)):
+            if binary[i]=='1':
+                nexthop=currNode.right
+                currNode.rigt=None
+            else:
+                nexthop=currNode.left
+                currNode.left=None
+            currNode=nexthop
+
+
     def printTree(self):
         dict={}
         prevlvl = [self.node]
