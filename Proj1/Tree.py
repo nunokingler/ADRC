@@ -106,3 +106,18 @@ class Tree:
                 print(i , end =" ")
             print("")
             prevlvl=currlvl
+
+    def printTable(self):
+        return treatNode("",self.node)
+
+
+
+def treatNode(currentString,currentNode):
+    dict={}
+    if currentNode.value!=None:
+        dict[currentString]=currentNode.value
+    if currentNode.left!=None:
+        dict.update(treatNode(currentString+"0",currentNode.left))
+    if currentNode.right!=None:
+        dict.update(treatNode(currentString+"1",currentNode.right))
+    return dict

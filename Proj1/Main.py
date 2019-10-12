@@ -7,3 +7,10 @@ tree.addNode("0000",0)
 tree.printTree()
 tree.deleteNode("0000")
 tree.printTree()
+dict=tree.printTable()
+if dict!=None:
+    for key,node in dict.items():
+        if key!="":
+            print ("{} : {}".format(key,node))
+        else:
+            print("e : {}".format(node))
