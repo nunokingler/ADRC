@@ -1,9 +1,10 @@
-import Tree
+#import Tree
+import PrefixTree
 #aggregacao e filtragem
 
-tree = Tree.Tree(1)
+tree = PrefixTree.Tree(1)
 counter=0
-with  open('PrefixTableTest.txt', 'r') as file:
+with  open('ex.txt', 'r') as file:
     line = file.readline()
     while line:
         counter+=1
