@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="3d4c2467-de7e-48da-bf33-760e3cfbe671" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PrefixTableTest.txt" beforeDir="false" afterPath="$PROJECT_DIR$/PrefixTableTest.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Tree.py" beforeDir="false" afterPath="$PROJECT_DIR$/Tree.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -96,8 +94,13 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Tree.py</url>
-          <line>228</line>
-          <option name="timeStamp" value="15" />
+          <line>239</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Tree.py</url>
+          <line>234</line>
+          <option name="timeStamp" value="17" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

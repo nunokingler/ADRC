@@ -229,33 +229,19 @@ class Tree:
                 if intersection(node.inherited(), node.value):
                     node.value = None
                 else:
-                    rand = random.randint(0, len(node.value)-1)
+                    rand = random.randint(0, len(node.value) - 1)
                     node.value = node.value[rand]
-            level+=1
+            level += 1
         level = maxlevel
-        while level <= 0:
-            for node in nodeList[level]:
-                if not node.value:
-                    is_anchor = 0
-                    currentNode = node
-                    currentLevel = level
-                    while not is_anchor:
-                        if (currentNode.left is not None and currentNode.right is not None) or currentNode.value is not None:
-                            is_anchor = 1
-                        else:
-                            if currentNode.parent.left == currentNode:
-                                currentNode.parent.left = None
-                            else:
-                                currentNode.parent.right = None
-                            nodeList[level].remove(currentNode)
-                            if not nodeList[level]:
-                                nodeList.remove(nodeList[level])
-                                maxlevel-=1
-                            currentNode = currentNode.parent
-                        currentLevel -= 1
-        tree = Tree(None)
-        tree.node=nodeList[0][0]
-        return tree
+
+        new_tree = Tree(None)
+        new_tree.node = nodeList[0][0]
+        diction = new_tree.printTable()
+        new_tree = Tree(nodeList[0][0])
+        for key, node in diction.items():
+            new_tree.addNode(key, node)
+        return new_tree
+
 
 def treatNode(currentString, currentNode):
     dict = {}
