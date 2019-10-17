@@ -171,29 +171,26 @@ class Tree:
             next_list = []
             for node in nodeList[level]:
                 has_child = 0
-                node_to_append=[]
+                node_to_append = []
+                childs = []
                 if node.left is not None:
-                    exist = True
-                    has_child += 1
-                    child = node.left
-                    if node.value is not None and child.value is None:
-                        node_to_append.append(NodeWithParent(node.value, child.left, child.right, node))
-                    else:
-                        node_to_append = NodeWithParentf(child, node)
-                    node.left = node_to_append
+                    childs.append(node.left)
                 if node.right is not None:
+                    childs.append(node.right)
+                for child in childs:
+                    if node.value is not None and child.value is None:
+                        new_node = NodeWithParent(node.value, child.left, child.right,node)
+                        next_list.append(new_node)
+                    else:
+                        new_node = NodeWithParentf(child, node)
+                        next_list.append(new_node)
+                    if child!=node.right:
+                            node.left = new_node
+                    else:
+                        node.right = new_node
                     exist = True
                     has_child += 1
-                    child = node.right
-                    if node.value is not None and child.value is None:
-                        node_to_append = NodeWithParent(node.value, child.left, child.right, node)
-                        next_list.append(node_to_append)
-                    else:
-                        node_to_append = NodeWithParentf(child, node)
-                        next_list.append(node_to_append)
-                    node.right = node_to_append
-                for child in node_to_append:
-                    next_list.append(child)
+
                 if has_child == 1:
                     if node.left is not None:
                         node.right = NodeWithParent(node.value, None, None, node)
