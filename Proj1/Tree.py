@@ -1,3 +1,6 @@
+import random
+
+
 class Node:
     def __init__(self, value, left, right):
         self.value = value
@@ -31,6 +34,14 @@ class NodeWithParent:
 
     def set_value(self, value):
         self.value = value
+
+    def inherited(self):
+        if self.parent is None:
+            return []
+        if self.parent.value:
+            return [self.parent.value]
+        else:
+            return self.parent.inherited()
 
 
 class Tree:
@@ -157,51 +168,51 @@ class Tree:
         # TODO step1 Done
         while exist:
             exist = 0
-            nextList = []
+            next_list = []
             for node in nodeList[level]:
-                haschild = 0
+                has_child = 0
                 if node.left is not None:
                     exist = 1
-                    haschild += 1
+                    has_child += 1
                     child = node.left
                     if node.value is not None and child.value is None:
-                        nodeToAppend = NodeWithParent(node.value, child.left, child.right, node)
-                        nextList.append(nodeToAppend)
+                        node_to_append = NodeWithParent(node.value, child.left, child.right, node)
+                        next_list.append(node_to_append)
                     else:
-                        nodeToAppend = NodeWithParentf(child, node)
-                        nextList.append(nodeToAppend)
-                    node.left = nodeToAppend
+                        node_to_append = NodeWithParentf(child, node)
+                        next_list.append(node_to_append)
+                    node.left = node_to_append
                 if node.right is not None:
                     exist = 1
-                    haschild += 1
+                    has_child += 1
                     child = node.right
                     if node.value is not None and child.value is None:
-                        nodeToAppend = NodeWithParent(node.value, child.left, child.right, node)
-                        nextList.append(nodeToAppend)
+                        node_to_append = NodeWithParent(node.value, child.left, child.right, node)
+                        next_list.append(node_to_append)
                     else:
-                        nodeToAppend = NodeWithParentf(child, node)
-                        nextList.append(nodeToAppend)
-                    node.right = nodeToAppend
-                if haschild == 1:
+                        node_to_append = NodeWithParentf(child, node)
+                        next_list.append(node_to_append)
+                    node.right = node_to_append
+                if has_child == 1:
                     if node.left is not None:
                         node.right = NodeWithParent(node.value, None, None, node)
-                        nodeToAppend = node.right
+                        node_to_append = node.right
                     else:
                         node.left = NodeWithParent(node.value, None, None, node)
-                        nodeToAppend = node.left
-                    nextList.append(nodeToAppend)
-                if haschild:
+                        node_to_append = node.left
+                    next_list.append(node_to_append)
+                if has_child:
                     node.value = None
             if exist:
                 level += 1
-                nodeList.append(nextList)
-
+                nodeList.append(next_list)
+        maxlevel = level
         # TODO step2 Done
         while level >= 0:
             for node in nodeList[level]:
                 if node.left is not None and node.right is not None:
                     interception = intersection(node.left.value, node.right.value)
-                    if intersection(node.left.value, node.right.value) == []:
+                    if not intersection(node.left.value, node.right.value):
                         node.value = node.left.value + node.right.value
                     else:
                         node.value = interception
@@ -210,9 +221,41 @@ class Tree:
                 elif node.right is not None:
                     node.value = node.right.value
             level -= 1
-        None
-        # TODO step3
 
+        level = 0
+
+        while level <= maxlevel:  # TODO step3
+            for node in nodeList[level]:
+                if intersection(node.inherited(), node.value):
+                    node.value = None
+                else:
+                    rand = random.randint(0, len(node.value)-1)
+                    node.value = node.value[rand]
+            level+=1
+        level = maxlevel
+        while level <= 0:
+            for node in nodeList[level]:
+                if not node.value:
+                    is_anchor = 0
+                    currentNode = node
+                    currentLevel = level
+                    while not is_anchor:
+                        if (currentNode.left is not None and currentNode.right is not None) or currentNode.value is not None:
+                            is_anchor = 1
+                        else:
+                            if currentNode.parent.left == currentNode:
+                                currentNode.parent.left = None
+                            else:
+                                currentNode.parent.right = None
+                            nodeList[level].remove(currentNode)
+                            if not nodeList[level]:
+                                nodeList.remove(nodeList[level])
+                                maxlevel-=1
+                            currentNode = currentNode.parent
+                        currentLevel -= 1
+        tree = Tree(None)
+        tree.node=nodeList[0][0]
+        return tree
 
 def treatNode(currentString, currentNode):
     dict = {}

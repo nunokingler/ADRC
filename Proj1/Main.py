@@ -16,10 +16,21 @@ with  open('PrefixTableTest.txt', 'r') as file:
 
 #tree.printTree()
 dict=tree.printTable()
+print("previous size {}".format(len(dict)))
+"""
 if dict!=None:
     for key,node in dict.items():
         if key!="":
             print ("{} : {}".format(key,node))
         else:
-            print("e : {}".format(node))
-tree.compressTree()
+            print("e : {}".format(node))"""
+print('compressing')
+dict=tree.compressTree().printTable()
+print("new size {}".format(len(dict)))
+"""
+if dict!=None:
+    for key,node in dict.items():
+        if key!="":
+            print ("{} : {}".format(key,node))
+        else:
+            print("e : {}".format(node))"""
