@@ -15,13 +15,13 @@ class Node:
 
 
 class NodeWithParent:
+    """Class used for optimization purposes only"""
 
     def __init__(self, value, left, right, parent):
         self.value = value
         self.right = right
         self.left = left
         self.parent = parent
-
 
     def change_hop(self, value, lr):
         if lr == 1:
@@ -42,15 +42,14 @@ class Tree:
     def addNode(self, binary, value):
         currNode = self.node
         lastWrittenNode = None
-        for i in range(len(binary)):
-
-            if binary[i] == '1':
+        for i in range(len(binary)):  # for all the characters in the string
+            if binary[i] == '1':  # chose the next hop
                 nexthop = currNode.right
             else:
                 nexthop = currNode.left
 
-            if nexthop is None:
-                newN = Node(None, None, None)
+            if nexthop is None:  # if there is no node on the way
+                newN = Node(None, None, None)  # create a new node
                 currNode.change_hop(newN, int(binary[i]))
                 nexthop = newN
             elif nexthop.value != None:
@@ -61,28 +60,46 @@ class Tree:
             self.node.value = value
         currNode.set_value(value)
 
+    def getNode(self, binary):
+        anchor = self.node
+        currNode = self.node
+        for i in range(len(binary)):
+            if currNode.value is not None:  # save the last value that
+                anchor = currNode
+
+            if binary[i] == '1':  # fetch the next node
+                nexthop = currNode.right
+            else:
+                nexthop = currNode.left
+
+            if nexthop is None:  # there is no other node on the way, send the closest node
+                return anchor
+
+        return anchor
+
     def deleteNode(self, binary):
         lastAnchor = self.node
         lastAnchor_i = 0
         currNode = self.node
-        for i in range(len(binary)):
-            if currNode.left != None and currNode.right != None:
-                lastAnchor = currNode
+        for i in range(len(binary)):  # for all the characters in the string
+            if currNode.left != None and currNode.right != None:  # if there is another node attached it means we
+                # cant delete this node
+                lastAnchor = currNode  # save this node as an anchor
                 lastAnchor_i = i
             if binary[i] == '1':
                 nexthop = currNode.right
             else:
                 nexthop = currNode.left
-            if nexthop == None:
+            if nexthop == None:  # there is no node in the tree with this prefix
                 return
             else:
                 currNode = nexthop
         last_node = currNode
         currNode = lastAnchor
-        for i in range(lastAnchor_i, len(binary)):
-            if binary[i] == '1':
+        for i in range(lastAnchor_i, len(binary)):  # for all the nodes from anchor to the node to delete
+            if binary[i] == '1':  # remove the node from the tree
                 nexthop = currNode.right
-                currNode.rigt = None
+                currNode.right = None
             else:
                 nexthop = currNode.left
                 currNode.left = None
@@ -131,61 +148,61 @@ class Tree:
         return treatNode("", self.node)
 
     def compressTree(self):
-        NodeWithParentf = (lambda x,y: NodeWithParent([x.value], x.left, x.right, y))
+        NodeWithParentf = (lambda x, y: NodeWithParent([x.value], x.left, x.right, y))
         nodeList = []
         nodeList.append([NodeWithParentf(self.node, None)])
         level = 0
         exist = 1
 
-        #TODO step1 Done
+        # TODO step1 Done
         while exist:
             exist = 0
             nextList = []
             for node in nodeList[level]:
-                haschild=0
+                haschild = 0
                 if node.left is not None:
                     exist = 1
-                    haschild+=1
+                    haschild += 1
                     child = node.left
                     if node.value is not None and child.value is None:
                         nodeToAppend = NodeWithParent(node.value, child.left, child.right, node)
                         nextList.append(nodeToAppend)
                     else:
-                        nodeToAppend=NodeWithParentf(child, node)
+                        nodeToAppend = NodeWithParentf(child, node)
                         nextList.append(nodeToAppend)
-                    node.left=nodeToAppend
+                    node.left = nodeToAppend
                 if node.right is not None:
                     exist = 1
-                    haschild+=1
+                    haschild += 1
                     child = node.right
                     if node.value is not None and child.value is None:
-                        nodeToAppend=NodeWithParent(node.value, child.left, child.right, node)
+                        nodeToAppend = NodeWithParent(node.value, child.left, child.right, node)
                         nextList.append(nodeToAppend)
                     else:
-                        nodeToAppend=NodeWithParentf(child, node)
+                        nodeToAppend = NodeWithParentf(child, node)
                         nextList.append(nodeToAppend)
-                    node.right=nodeToAppend
-                if haschild==1:
+                    node.right = nodeToAppend
+                if haschild == 1:
                     if node.left is not None:
-                        node.right=NodeWithParent(node.value, None, None, node)
-                        nodeToAppend= node.right
+                        node.right = NodeWithParent(node.value, None, None, node)
+                        nodeToAppend = node.right
                     else:
-                        node.left=NodeWithParent(node.value, None, None, node)
-                        nodeToAppend=node.left
+                        node.left = NodeWithParent(node.value, None, None, node)
+                        nodeToAppend = node.left
                     nextList.append(nodeToAppend)
                 if haschild:
-                    node.value=None
+                    node.value = None
             if exist:
                 level += 1
                 nodeList.append(nextList)
 
-        #TODO step2 Done
+        # TODO step2 Done
         while level >= 0:
             for node in nodeList[level]:
                 if node.left is not None and node.right is not None:
-                    interception = intersection(node.left.value,node.right.value)
-                    if intersection(node.left.value,node.right.value) == []:
-                        node.value=node.left.value + node.right.value
+                    interception = intersection(node.left.value, node.right.value)
+                    if intersection(node.left.value, node.right.value) == []:
+                        node.value = node.left.value + node.right.value
                     else:
                         node.value = interception
                 elif node.left is not None:
@@ -199,13 +216,13 @@ class Tree:
 
 def treatNode(currentString, currentNode):
     dict = {}
-    if currentNode.value != None:
+    if currentNode.value != None:  # add this node to the dictionary
         dict[currentString] = currentNode.value
-    if currentNode.left != None:
+    if currentNode.left != None:  # add left node dictionary
         dict.update(treatNode(currentString + "0", currentNode.left))
-    if currentNode.right != None:
+    if currentNode.right != None:  # add right node dictionary
         dict.update(treatNode(currentString + "1", currentNode.right))
-    return dict
+    return dict  # return the dictonary
 
 
 def intersection(lst1, lst2):
