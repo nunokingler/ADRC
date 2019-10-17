@@ -169,29 +169,29 @@ class Tree:
         while exist:
             exist = False
             next_list = []
-            for node in nodeList[level]:
+            for node in nodeList[level]:  # for all nodes on the current level
                 has_child = 0
                 node_to_append = []
                 childs = []
-                if node.left is not None:
+                if node.left is not None:  # add childs to list
                     childs.append(node.left)
                 if node.right is not None:
                     childs.append(node.right)
-                for child in childs:
-                    if node.value is not None and child.value is None:
-                        new_node = NodeWithParent(node.value, child.left, child.right,node)
+                for child in childs:  # for all the childs
+                    if node.value is not None and child.value is None:  # propagate child value if it has none
+                        new_node = NodeWithParent(node.value, child.left, child.right, node)
                         next_list.append(new_node)
                     else:
-                        new_node = NodeWithParentf(child, node)
+                        new_node = NodeWithParentf(child, node)  # otherwise keep child value
                         next_list.append(new_node)
-                    if child!=node.right:
-                            node.left = new_node
+                    if child != node.right:  # update the corresponding parent arm
+                        node.left = new_node
                     else:
                         node.right = new_node
                     exist = True
                     has_child += 1
 
-                if has_child == 1:
+                if has_child == 1:  # create missing child(a node can only have 0 or 2 childs)
                     if node.left is not None:
                         node.right = NodeWithParent(node.value, None, None, node)
                         node_to_append = node.right
@@ -201,19 +201,19 @@ class Tree:
                     next_list.append(node_to_append)
                 if has_child:
                     node.value = None
-            if exist:
+            if exist:  # if therere are more nodes on the next level
                 level += 1
                 nodeList.append(next_list)
         maxlevel = level
         # TODO step2 Done
         while level >= 0:
-            for node in nodeList[level]:
-                if node.left is not None and node.right is not None:
+            for node in nodeList[level]:  # for all nodes
+                if node.left is not None and node.right is not None:  # if its not a leaf node
                     interception = intersection(node.left.value, node.right.value)
-                    if not intersection(node.left.value, node.right.value):
-                        node.value = node.left.value + node.right.value
+                    if not intersection(node.left.value, node.right.value):  # if the intercection returns empty
+                        node.value = node.left.value + node.right.value  # the value of the node is the sum of the child values
                     else:
-                        node.value = interception
+                        node.value = interception  # otherwisethe value of the node is the intercection
                 elif node.left is not None:
                     node.value = node.left.value
                 elif node.right is not None:
@@ -233,12 +233,12 @@ class Tree:
         level = maxlevel
 
         new_tree = Tree(None)
-        new_tree.node = nodeList[0][0]
-        diction = new_tree.printTable()
-        new_tree = Tree(nodeList[0][0])
-        for key, node in diction.items():
+        new_tree.node = nodeList[0][0]  # create a new tree in order to run printTable
+        diction = new_tree.printTable()  # this returns a dicionary with nodes containinga a value only
+        new_tree = Tree(nodeList[0][0])  # this cleans up the tree of nodes with no use
+        for key, node in diction.items():  # we then add these nodes to a new tree
             new_tree.addNode(key, node)
-        return new_tree
+        return new_tree  # and return it
 
 
 def treatNode(currentString, currentNode):
