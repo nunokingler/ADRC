@@ -62,7 +62,7 @@ class CouldNotOpenFile(Exception):
 class TreeUi(object):
     """docstring for DBUI."""
 
-    commandList = ('prefixTree', 'printTable', 'insertPrefix', 'deletePrefix', 'compressTree', 'deletePrefix')
+    commandList = ('prefixTree', 'printTable', 'PrintTree' , 'insertPrefix', 'deletePrefix', 'compressTree')
 
     def __init__(self, tree):
         super(TreeUi, self).__init__()
@@ -127,6 +127,13 @@ class TreeUi(object):
                 raise InvalidSyntax('Usage: compressTree')
             else:
                 return self.tree.compressTree()
+
+        elif command == 'PrintTree':
+            if len(partition) != 1:
+                raise InvalidSyntax('Usage: compressTree')
+            else:
+                return self.tree.printTree()
+
         else:
             raise NoSuchCommand(TreeUi.commandList)
 
@@ -216,16 +223,19 @@ class Tree:
                 return
             else:
                 currNode = nexthop
-        last_node = currNode
-        currNode = lastAnchor
-        for i in range(lastAnchor_i, len(binary)):  # for all the nodes from anchor to the node to delete
-            if binary[i] == '1':  # remove the node from the tree
-                nexthop = currNode.right
-                currNode.right = None
-            else:
-                nexthop = currNode.left
-                currNode.left = None
-            currNode = nexthop
+        if currNode.left is None and currNode.right is None:
+            last_node = currNode
+            currNode = lastAnchor
+            for i in range(lastAnchor_i, len(binary)):  # for all the nodes from anchor to the node to delete
+                if binary[i] == '1':  # remove the node from the tree
+                    nexthop = currNode.right
+                    currNode.right = None
+                else:
+                    nexthop = currNode.left
+                    currNode.left = None
+                currNode = nexthop
+        else:
+            currNode.value = None
 
     def printTree(self):
         dict = {}
