@@ -141,7 +141,10 @@ class TreeUi(object):
 def binaryStringCheck(stri):
     for char in stri:
         if char != '1' and char != '0':
-            return False
+            if char==stri[0] and char == 'e' and len(stri)==1:
+                return True
+            else:
+                return False
     return True
 
 
@@ -164,12 +167,15 @@ class Tree:
                     if len(parts) == 2:
                         self.addNode(parts[0], int(parts[1]))
                     elif len(parts) == 1:
-                        self.addNode("", parts[0])
+                        self.addNode("e", parts[0])
                     line = file.readline()
         except Exception as ex:
             raise CouldNotOpenFile()
 
     def addNode(self, binary, value):
+        if binary[0]== 'e':
+                self.node.value=value
+                return
         currNode = self.node
         lastWrittenNode = None
         for i in range(len(binary)):  # for all the characters in the string
