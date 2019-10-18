@@ -1,0 +1,4 @@
+*.tar.*
+venv
+__pycache__
+.idea
