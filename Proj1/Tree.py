@@ -44,11 +44,119 @@ class NodeWithParent:
             return self.parent.inherited()
 
 
+class InvalidSyntax(Exception):
+    def __init__(self, list):
+        self.argsx = list
+
+
+class NoSuchCommand(Exception):
+    def __init__(self, list):
+        self.args = list
+
+
+class CouldNotOpenFile(Exception):
+    def __init__(self):
+        None
+
+
+class TreeUi(object):
+    """docstring for DBUI."""
+
+    commandList = ('prefixTree', 'printTable', 'insertPrefix', 'deletePrefix', 'compressTree', 'deletePrefix')
+
+    def __init__(self, tree):
+        super(TreeUi, self).__init__()
+        self.tree = tree
+
+    def command(self, string):
+        if string =="":
+            return""
+        partition = string.split()
+        command = partition[0]
+        if len(partition) <= 0:
+            raise NoSuchCommand(TreeUi.commandList)
+
+        if command == 'prefixTree':
+            if len(partition) != 2:
+                raise InvalidSyntax('Usage: prefixTree filename')
+            else:
+                try:
+                    self.tree.grabFromFile(partition[1])
+                    return 'Done'
+                except Exception as ex:
+                    raise InvalidSyntax('could not open file')
+
+        elif command == 'printTable':
+            if len(partition) != 1:
+                raise InvalidSyntax('Usage: This funciton uses no arguments')
+            else:
+                return self.tree.printTable()
+
+        elif command == 'lookUp':
+            if len(partition) != 2:
+                raise InvalidSyntax('Usage: lookUp string')
+            if not binaryStringCheck(partition[1]):
+                raise InvalidSyntax('please insert a binary string')
+            else:
+                return 'the output port is:' + str(self.tree.lookUp(partition[1]))
+
+        elif command == 'insertPrefix':
+            if len(partition) != 3:
+                raise InvalidSyntax('Usage: insertPrefix prefix value')
+            if not binaryStringCheck(partition[1]):
+                raise InvalidSyntax('please insert a binary string')
+            try:
+                number = int(partition[2])
+            except Exception as ex:
+                raise InvalidSyntax('please use a valid number')
+            else:
+                self.tree.addNode(partition[1], number)
+                return 'Done'
+
+        elif command == 'deletePrefix':
+            if len(partition) != 2:
+                raise InvalidSyntax('Usage: deletePrefix value')
+            if not binaryStringCheck(partition[1]):
+                raise InvalidSyntax('please insert a binary string')
+            else:
+                self.tree.deleteNode(partition[1])
+                return 'Done'
+
+        elif command == 'compressTree':
+            if len(partition) != 1:
+                raise InvalidSyntax('Usage: compressTree')
+            else:
+                return self.tree.compressTree()
+        else:
+            raise NoSuchCommand(TreeUi.commandList)
+
+
+def binaryStringCheck(stri):
+    for char in stri:
+        if char != '1' and char != '0':
+            return False
+    return True
+
+
 class Tree:
 
     def __init__(self, default):
         n = Node(default, None, None)
         self.node = n
+
+    def grabFromFile(self, filename):
+        try:
+            with open(filename, 'r') as file:
+                line = file.readline()
+                while line:
+                    parts = line.split()
+                    if len(parts) == 2:
+                        self.addNode(parts[0], int(parts[1]))
+                    elif len(parts) == 1:
+                        self.addNode("", parts[0])
+                    line = file.readline()
+        except Exception as ex:
+            raise CouldNotOpenFile()
 
     def addNode(self, binary, value):
         currNode = self.node
@@ -71,7 +179,7 @@ class Tree:
             self.node.value = value
         currNode.set_value(value)
 
-    def getNode(self, binary):
+    def lookUp(self, binary):
         anchor = self.node
         currNode = self.node
         for i in range(len(binary)):
@@ -84,9 +192,12 @@ class Tree:
                 nexthop = currNode.left
 
             if nexthop is None:  # there is no other node on the way, send the closest node
-                return anchor
-
-        return anchor
+                return anchor.value
+            currNode=nexthop
+        if currNode.value:
+            return currNode.value
+        else:
+            return anchor.value
 
     def deleteNode(self, binary):
         lastAnchor = self.node
@@ -222,7 +333,7 @@ class Tree:
 
         level = 0
 
-        while level <= maxlevel:  # TODO step3
+        while level <= maxlevel:  # TODO step3 Done
             for node in nodeList[level]:
                 if intersection(node.inherited(), node.value):
                     node.value = None

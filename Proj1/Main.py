@@ -1,37 +1,27 @@
-#import Tree
-import PrefixTree
-#aggregacao e filtragem
+import Tree
 
-tree = PrefixTree.Tree(1)
+tree = Tree.Tree(1)
 counter=0
-with  open('ex.txt', 'r') as file:
-    line = file.readline()
-    while line:
-        counter+=1
-        print("adding line {}".format(counter))
-        parts= line.split()
-        if len(parts)==2:
-            tree.addNode(parts[0], int(parts[1]))
-        line = file.readline()
+ui=Tree.TreeUi(tree)
 
+while True:
+    try:
+        to_print=ui.command(input('Input your command'))
+        if isinstance(to_print, str):
+            print(to_print)
+        else:
+            if isinstance(to_print,Tree.Tree):
+                to_print=to_print.printTable()
+            for key,node in to_print.items():
+                if key != "":
+                    print("{} : {}".format(key, node))
+                else:
+                    print("e : {}".format(node))
+            print("table has {} entries".format(len(to_print)))
 
-#tree.printTree()
-dict=tree.printTable()
-print("previous size {}".format(len(dict)))
-"""
-if dict!=None:
-    for key,node in dict.items():
-        if key!="":
-            print ("{} : {}".format(key,node))
-        else:
-            print("e : {}".format(node))"""
-print('compressing')
-dict=tree.compressTree().printTable()
-print("new size {}".format(len(dict)))
-"""
-if dict!=None:
-    for key,node in dict.items():
-        if key!="":
-            print ("{} : {}".format(key,node))
-        else:
-            print("e : {}".format(node))"""
+    except Tree.NoSuchCommand as noComm:
+        print("Commands:")
+        for commands in noComm.args:
+            print(commands)
+    except Tree.InvalidSyntax as invalid:
+        print( invalid.argsx)
