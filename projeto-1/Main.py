@@ -1,6 +1,6 @@
 import Tree
 
-tree = Tree.Tree(1)
+tree = Tree.Tree(None)
 counter=0
 ui=Tree.TreeUi(tree)
 
