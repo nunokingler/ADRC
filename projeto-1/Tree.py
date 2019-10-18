@@ -156,7 +156,7 @@ class Tree:
             script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
             rel_path = "res/"+filename
             abs_file_path = os.path.join(script_dir, rel_path)
-            print(abs_file_path)
+            print('opening:'+abs_file_path)
             with open(abs_file_path, 'r') as file:	
                 line = file.readline()
                 while line:
