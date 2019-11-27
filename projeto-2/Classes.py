@@ -1,4 +1,5 @@
-import matpy
+import math
+import bisect
 class Grid(object):
     """docstring for Grid."""
 
@@ -11,58 +12,82 @@ class Grid(object):
 
     def addRelationship(self, nodeID1,nodeID2,relationship):
         ncreated=False
-        if relationship==3: //
+        if relationship==3:
             nodeaux=nodeID1
             nodeID1=nodeID2
             nodeID2=nodeaux
             relationship=invertRelationship(relationship)
         try:
             node1=self.nodes[nodeID1]
-            node1_was_stub= node1.isStub()
-            node1_was_top = node1.isTop()
         except:
             node1=node()
-            node1_was_stub= False
-            node1_was_top = False
+            self.nodes[nodeID1] = node1
         try:
             node2=self.nodes[nodeID2]
-            node2_was_stub= node2.isStub()
-            node2_was_top = node2.isTop()
         except:
             node2=node()
-            node2_was_stub= False
-            node2_was_top = False
+            self.nodes[nodeID2] = node2
+
 
         node1.addEdge(node2,relationship)
 
-        if node1_was_top!= node1.isTop():
-            if node1_was_top == 1:
-                self.tops.remove(node1)
-            else:
-                self.tops.add(node1)
+    def dijkstraPath(self, start, end):
+        try:
+            nodeStart = self.nodes[start]
+            nodeEnd = self.nodes[end]
+        except Exception as ex: #one of the nodes is not in the nodeList
+            return -1
 
-        if node1_was_stub!= node1.isStub():
-            if node1_was_stub == 1:
-                self.stubs.remove(node1)
-            else:
-                self.stubs.add(node1)
+        nodeList = list(self.nodes.values())
+        nodeNameList = list(self.nodes.keys())
 
-        if node2_was_top!= node2.isTop():
-            if node2_was_top == 1:
-                self.tops.remove(node2)
-            else:
-                self.tops.add(node2)
+        for node in self.nodes.values():
+            node.resetDistPrev()
+        nodeStart.dist=0
+        nodeStart.prev = None
 
-        if node2_was_stub!= node2.isStub():
-            if node2_was_stub == 1:
-                self.stubs.remove(node2)
-            else:
-                self.stubs.add(node2)
+        currNode=takeSmallerNode(nodeList)
 
-        self.toAdvert.append(node1)
-        self.toAdvert.append(node2)
+        for edge in node.edges:
+            relative = edge.getRel(currNode)
+            if relative.dist > currNode.dist+1: #+1 for each edge
+                relative.dist = currNode.dist+1
+                relative.prev = currNode
+        if nodeEnd.prev == None:
+            print("No path for that nodeEnd")
+            return None
+
+        path_taken = []
+        path_taken.append(nodeEnd)
+        pathNode = nodeEnd.prev
+        jump_number = 1
+        while pathNode != None:
+            path_taken.insert(pathNode,0)
+            jump_number+=1
+            pathNode = pathnode.prev
+        return (pathNode, jump_number)
 
 
+
+
+
+def takeSmallerNode(list):
+    max = math.inf
+    to_return = None
+    maxI= 0
+
+    for i, node in enumerate(list):
+        if node.dist<max:
+            max=node.dist
+            to_return=node
+    if to_return!= None:
+        list.remove(to_return)
+    return to_return
+
+
+
+
+"""
     def calculate(self):
         adverts= set(self.toAdvert)
         for node in self.stubs:
@@ -79,8 +104,9 @@ class Grid(object):
             #get nodeList
             #give nodeList
             #add back nodes to top of adverts if they return true
+            #remove current node from the toAdvertList
 
-
+"""
 
 class Node(object):
     """docstring fo Node."""
@@ -89,6 +115,27 @@ class Node(object):
         super(Node, self).__init__()
         self.edges = {}
         self.adverts={}
+        self.dist = math.inf
+        self.prev = None
+
+    def resetDistPrev(self):
+        self.dist= math.inf
+        self.prev = None
+
+    def _is_valid_operand(self, other):
+        return (hasattr(other, "dist") and
+                hasattr(other, "prev"))
+
+    def __eq__(self, other):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        return (self.prev == other.prev)
+
+    def __lt__(self, other):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        return (self.prev) < (other.prev)
+
 
     def addEdge(self, node,relationship):
             edge=edge(self,node,relationship)
@@ -101,7 +148,7 @@ class Node(object):
         for dest,path in self.adverts.itens():
             if self.edges[path].getRel(self) == 1:
                 to_send.append(dest)
-            elif self.edges[path].getRel(self)==2 and relationship !=2
+            elif self.edges[path].getRel(self)==2 and relationship !=2:
                 to_send.append(dest)
         return to_send
 
@@ -122,7 +169,7 @@ class Node(object):
                     if (oldPath==3 and rel<3) or (oldPath==2 and rel==1):# if this new advert has a more favorable relationship keep it
                         self.adverts[dest]= path
                         altered=True
-                except Exception as ex:#TODO check no dictionary entry exception
+                except Exception as ex:         #TODO check no dictionary entry exception
                         self.adverts[dest]= path
                         altered=True
         return altered
@@ -154,7 +201,7 @@ class edge(object):
     def getRel(self,selfnode):
         try:
             index = self.nodes.index(selfnode)
-            if index==0
+            if index==0:
                 return [self.nodes[1],self.relationship]
             else:
                 return [self.nodes[0],invertRelationship(self.relationship)]
