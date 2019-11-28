@@ -18,7 +18,7 @@ class Grid(cmd.Cmd):
         """
             nullify emptyline
         """
-        print()
+        print("type 'help' for help!")
 
     def __init__(self):
         super(Grid, self).__init__()
@@ -125,7 +125,7 @@ class Grid(cmd.Cmd):
                         relative.prev = currNode
                         relative.lastRelationship = edge.getRelationship(relative)
                 elif currNode.lastRelationship == 2:
-                    if (relative.lastRelationship == 2 or relative.lastRelationship==0) and relative.dist > currNode.dist+1 and edge.getRelationship(currNode)!= 2tes:
+                    if (relative.lastRelationship == 2 or relative.lastRelationship==0) and relative.dist > currNode.dist+1 and edge.getRelationship(currNode)!= 2:
                         relative.dist = currNode.dist + 1
                         relative.prev = currNode
                         relative.lastRelationship = 2
