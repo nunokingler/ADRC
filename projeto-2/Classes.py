@@ -87,6 +87,64 @@ class Grid(cmd.Cmd):
 
         node1.addEdge(node2, relationship)
 
+    def do_comPath(self, arg):
+        'calculates commercial path to every node'
+        if not arg:
+            print("please refer to the help for command documentation")
+            return None
+        arglist = arg.split()
+        if len(arglist) != 2:
+            print("wrong argument number, please refer to the help for command documentation")
+            return None
+        try:
+            start = int(arglist[0])
+            end = int(arglist[1])
+            nodeStart = self.nodes[start]
+            nodeEnd = self.nodes[end]
+        except Exception as ex:  # one of the nodes is not in the nodeList
+            print("node does not exist or node is not integer")
+            return None
+        nodeList = list(self.nodes.values())
+
+        for node in self.nodes.values():
+            node.resetDistPrev()
+        nodeStart.dist = 0
+        nodeStart.prev = None
+        nodeStart.lastRelationship = 4
+        reached = False
+
+        while nodeList:
+            currNode = takeSmallerRelationshipNode(nodeList)#TODO change this to be a ordered array or something
+            if reached and currNode.lastRelationship >= nodeEnd.lastRelationship:
+                break
+            for edge in list(currNode.edges.values()):
+                relative = edge.getRelative(currNode)
+                if currNode.lastRelationship == 1 or currNode.lastRelationship == 4:
+                    if relative.dist > currNode.dist + 1:  # +1 for each edge
+                        relative.dist = currNode.dist + 1
+                        relative.prev = currNode
+                        relative.lastRelationship = edge.getRelationship(relative)
+                elif currNode.lastRelationship == 2:
+                    if (relative.lastRelationship == 2 or relative.lastRelationship==0) and relative.dist > currNode.dist+1 and edge.getRelationship(currNode)!= 2tes:
+                        relative.dist = currNode.dist + 1
+                        relative.prev = currNode
+                        relative.lastRelationship = 2
+                elif currNode.lastRelationship == 3:
+                    if edge.getRelationship(currNode) == 1 and relative.dist>currNode.dist+1:#if current node is provider
+                        relative.dist = currNode.dist + 1
+                        relative.prev = currNode
+                        relative.lastRelationship = edge.getRelationship(relative)
+
+                if relative.ID == nodeEnd.ID and not math.isinf(relative.dist):
+                    reached = True
+        if reached:
+            path = [nodeEnd.ID]
+            currNode = nodeEnd.prev
+            while currNode != None:
+                path.insert(0, currNode.ID)
+                currNode = currNode.prev
+            print("reached node {} from {} with {} jumps using path {} ".format(nodeEnd.ID,nodeStart.ID,nodeEnd.dist,path))
+
     def do_dijPath(self, arg):
         'calculates shortest overall path from node to all other nodes: dijkstraPath nodeID'
         if not arg:
@@ -111,7 +169,7 @@ class Grid(cmd.Cmd):
         nodeStart.prev = None
 
         while nodeList:
-            currNode = takeSmallerNode(nodeList)
+            currNode = takeSmallerDistanceNode(nodeList)#TODO change this to be a ordered array or something
             for edge in list(currNode.edges.values()):
                 relative = edge.getRelative(currNode)
                 if relative.dist > currNode.dist + 1:  # +1 for each edge
@@ -119,16 +177,14 @@ class Grid(cmd.Cmd):
                     relative.prev = currNode
 
         for node in self.nodes.values():
-            jumpnumber = 0
             path = [node.ID]
             currNode = node.prev
             while currNode != None:
                 path.insert(0, currNode.ID)
                 currNode = currNode.prev
-                jumpnumber += 1
             print(
                 "using node {} as a start we can get to node {} in {} jumps using path {}".format(nodeStart.ID, node.ID,
-                                                                                                  jumpnumber, path))
+                                                                                                  node.dist, path))
 
     def dijkstraPathtoNode(self, start, end):
         try:
@@ -145,7 +201,7 @@ class Grid(cmd.Cmd):
         nodeStart.dist = 0
         nodeStart.prev = None
 
-        currNode = takeSmallerNode(nodeList)
+        currNode = takeSmallerDistanceNode(nodeList)
 
         for edge in node.edges:
             relative = edge.getRel(currNode)
@@ -167,14 +223,24 @@ class Grid(cmd.Cmd):
         return (pathNode, jump_number)
 
 
-def takeSmallerNode(list):
+def takeSmallerDistanceNode(list):
     max = math.inf
     to_return = None
-    maxI = 0
 
     for i, node in enumerate(list):
         if node.dist < max:
             max = node.dist
+            to_return = node
+    if to_return != None:
+        list.remove(to_return)
+    return to_return
+def takeSmallerRelationshipNode(list):
+    max = 0
+    to_return = None
+
+    for i, node in enumerate(list):
+        if node.lastRelationship > max:
+            max = node.lastRelationship
             to_return = node
     if to_return != None:
         list.remove(to_return)
@@ -213,10 +279,12 @@ class Node(object):
         self.dist = math.inf
         self.prev = None
         self.ID = ID
+        self.lastRelationship = 0
 
     def resetDistPrev(self):
         self.dist = math.inf
         self.prev = None
+        self.lastRelationship = 0
 
     def _is_valid_operand(self, other):
         return (hasattr(other, "dist") and
