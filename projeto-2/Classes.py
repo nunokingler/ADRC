@@ -140,10 +140,16 @@ class Grid(cmd.Cmd):
         if reached:
             path = [nodeEnd.ID]
             currNode = nodeEnd.prev
+            connectioninfo=[0,0,0]#provider->client, equal, client->provider
+            lastNode = nodeEnd
             while currNode != None:
                 path.insert(0, currNode.ID)
+                usedEdge = currNode.getEdge(lastNode)
+                connectioninfo[usedEdge.getRelationship(currNode)-1] += 1#TODO add connection statistics
+                lastNode = currNode
                 currNode = currNode.prev
-            print("reached node {} from {} with {} jumps using path {} ".format(nodeEnd.ID,nodeStart.ID,nodeEnd.dist,path))
+            print("reached node {} from {} with {} jumps using path {} ,jumps (p->c,p->p,c->p){}".format(nodeEnd.ID,nodeStart.ID,nodeEnd.dist,path,connectioninfo))
+            return
 
     def do_dijPath(self, arg):
         'calculates shortest overall path from node to all other nodes: dijkstraPath nodeID'
@@ -304,7 +310,12 @@ class Node(object):
         edge = Edge(self, node, relationship)
         self.edges[node.ID] = edge  # TODO update table and other nodes maybe?
         node.edges[self.ID] = edge
-
+    def getEdge(self, otherNode):
+        try:
+            edge = self.edges[otherNode.ID]
+        except Exception as ex:
+            return None
+        return edge
     def sendDestinations(self, relationship):
         to_send = []
         to_send.append(self)
