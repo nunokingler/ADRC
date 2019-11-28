@@ -1,41 +1,105 @@
 import math
-import bisect
-class Grid(object):
-    """docstring for Grid."""
+import os
+import cmd
 
-    def __init__(self, arg):
+
+class CouldNotOpenFile(Exception):
+    def __init__(self):
+        None
+
+
+class Grid(cmd.Cmd):
+    """Command line implementation"""
+    intro = 'Welcome to the shell!'
+    prompt = '(input) '
+    file = None
+
+    def emptyline(self):
+        """
+            nullify emptyline
+        """
+        print()
+
+    def __init__(self):
         super(Grid, self).__init__()
         self.nodes = {}
         self.stubs = []
-        self.tops  = []
+        self.tops = []
         self.toAdvert = []
 
-    def addRelationship(self, nodeID1,nodeID2,relationship):
-        ncreated=False
-        if relationship==3:
-            nodeaux=nodeID1
-            nodeID1=nodeID2
-            nodeID2=nodeaux
-            relationship=invertRelationship(relationship)
+    def do_foo(self, arg):
+        'function with breakpoint for development purposes'
+        print("stop fooing around!")
+
+    def do_file(self, arg):
+        if not arg:
+            print("please refer to the help for command documentation")
+            return None
         try:
-            node1=self.nodes[nodeID1]
+            script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
+            rel_path = arg  # "res/" + arg
+            abs_file_path = os.path.join(script_dir, rel_path)
+            print('opening:' + abs_file_path)
+            with open(abs_file_path, 'r') as file:
+                line = file.readline()
+                while line:
+                    parts = line.split()
+                    if len(parts) == 3:
+                        self.do_addRelationship(line)
+
+                    line = file.readline()
+        except Exception as ex:
+            print(
+                "there was a problem opening that file up, you should try again later or check the command documentation")
+
+    def do_addRelationship(self, arg):
+        'Add a relationship between nodes: addRelationship (int)nodeID1 (int)nodeID2 (int)relationship(from 1-nodeID1 is provider of nodeID2 2-both are equal 3- nodeID1 is customer of nodeID2)'
+        if not arg:
+            print("please refer to the help for command documentation")
+            return None
+        arglist = arg.split()
+        if len(arglist) != 3:
+            print("please refer to the help for command documentation")
+            return None
+        try:
+            nodeID1 = int(arglist[0])
+            nodeID2 = int(arglist[1])
+            relationship = int(arglist[2])
+        except Exception as ex:
+            print("please refer to the help for command documentation")
+            return None
+
+        if relationship == 3:
+            nodeaux = nodeID1
+            nodeID1 = nodeID2
+            nodeID2 = nodeaux
+            relationship = invertRelationship(relationship)
+        try:
+            node1 = self.nodes[nodeID1]
         except:
-            node1=node()
+            node1 = Node(nodeID1)
             self.nodes[nodeID1] = node1
         try:
-            node2=self.nodes[nodeID2]
+            node2 = self.nodes[nodeID2]
         except:
-            node2=node()
+            node2 = Node(nodeID2)
             self.nodes[nodeID2] = node2
 
+        node1.addEdge(node2, relationship)
 
-        node1.addEdge(node2,relationship)
-
-    def dijkstraPath(self, start, end):
+    def do_dijPath(self, arg):
+        'calculates shortest overall path from node to all other nodes: dijkstraPath nodeID'
+        if not arg:
+            print("please refer to the help for command documentation")
+            return None
+        arglist = arg.split()
+        if len(arglist) != 1:
+            print("please refer to the help for command documentation")
+            return None
         try:
+            start = int(arg[0])
             nodeStart = self.nodes[start]
-            nodeEnd = self.nodes[end]
-        except Exception as ex: #one of the nodes is not in the nodeList
+        except Exception as ex:  # one of the nodes is not in the nodeList
             return -1
 
         nodeList = list(self.nodes.values())
@@ -43,15 +107,50 @@ class Grid(object):
 
         for node in self.nodes.values():
             node.resetDistPrev()
-        nodeStart.dist=0
+        nodeStart.dist = 0
         nodeStart.prev = None
 
-        currNode=takeSmallerNode(nodeList)
+        while nodeList:
+            currNode = takeSmallerNode(nodeList)
+            for edge in list(currNode.edges.values()):
+                relative = edge.getRelative(currNode)
+                if relative.dist > currNode.dist + 1:  # +1 for each edge
+                    relative.dist = currNode.dist + 1
+                    relative.prev = currNode
+
+        for node in self.nodes.values():
+            jumpnumber = 0
+            path = [node.ID]
+            currNode = node.prev
+            while currNode != None:
+                path.insert(0, currNode.ID)
+                currNode = currNode.prev
+                jumpnumber += 1
+            print(
+                "using node {} as a start we can get to node {} in {} jumps using path {}".format(nodeStart.ID, node.ID,
+                                                                                                  jumpnumber, path))
+
+    def dijkstraPathtoNode(self, start, end):
+        try:
+            nodeStart = self.nodes[start]
+            nodeEnd = self.nodes[end]
+        except Exception as ex:  # one of the nodes is not in the nodeList
+            return -1
+
+        nodeList = list(self.nodes.values())
+        nodeNameList = list(self.nodes.keys())
+
+        for node in self.nodes.values():
+            node.resetDistPrev()
+        nodeStart.dist = 0
+        nodeStart.prev = None
+
+        currNode = takeSmallerNode(nodeList)
 
         for edge in node.edges:
             relative = edge.getRel(currNode)
-            if relative.dist > currNode.dist+1: #+1 for each edge
-                relative.dist = currNode.dist+1
+            if relative.dist > currNode.dist + 1:  # +1 for each edge
+                relative.dist = currNode.dist + 1
                 relative.prev = currNode
         if nodeEnd.prev == None:
             print("No path for that nodeEnd")
@@ -62,29 +161,24 @@ class Grid(object):
         pathNode = nodeEnd.prev
         jump_number = 1
         while pathNode != None:
-            path_taken.insert(pathNode,0)
-            jump_number+=1
-            pathNode = pathnode.prev
+            path_taken.insert(pathNode, 0)
+            jump_number += 1
+            pathNode = pathNode.prev
         return (pathNode, jump_number)
-
-
-
 
 
 def takeSmallerNode(list):
     max = math.inf
     to_return = None
-    maxI= 0
+    maxI = 0
 
     for i, node in enumerate(list):
-        if node.dist<max:
-            max=node.dist
-            to_return=node
-    if to_return!= None:
+        if node.dist < max:
+            max = node.dist
+            to_return = node
+    if to_return != None:
         list.remove(to_return)
     return to_return
-
-
 
 
 """
@@ -108,18 +202,20 @@ def takeSmallerNode(list):
 
 """
 
+
 class Node(object):
     """docstring fo Node."""
 
-    def __init__(self):
+    def __init__(self, ID):
         super(Node, self).__init__()
         self.edges = {}
-        self.adverts={}
+        self.adverts = {}
         self.dist = math.inf
         self.prev = None
+        self.ID = ID
 
     def resetDistPrev(self):
-        self.dist= math.inf
+        self.dist = math.inf
         self.prev = None
 
     def _is_valid_operand(self, other):
@@ -129,90 +225,117 @@ class Node(object):
     def __eq__(self, other):
         if not self._is_valid_operand(other):
             return NotImplemented
-        return (self.prev == other.prev)
+        return (self.ID == other.ID)
 
     def __lt__(self, other):
         if not self._is_valid_operand(other):
             return NotImplemented
-        return (self.prev) < (other.prev)
+        return (self.ID) < (other.ID)
 
-
-    def addEdge(self, node,relationship):
-            edge=edge(self,node,relationship)
-            self.edges[node]=edge#TODO update table and other nodes maybe?
-            node.edges[self]=edge
+    def addEdge(self, node, relationship):
+        edge = Edge(self, node, relationship)
+        self.edges[node.ID] = edge  # TODO update table and other nodes maybe?
+        node.edges[self.ID] = edge
 
     def sendDestinations(self, relationship):
-        to_send=[]
+        to_send = []
         to_send.append(self)
-        for dest,path in self.adverts.itens():
+        for dest, path in self.adverts.itens():
             if self.edges[path].getRel(self) == 1:
                 to_send.append(dest)
-            elif self.edges[path].getRel(self)==2 and relationship !=2:
+            elif self.edges[path].getRel(self) == 2 and relationship != 2:
                 to_send.append(dest)
         return to_send
 
-    def getNeighbours(self):#{neighbour1:relationship from this side}
-            to_send = {}
-            for dest, val in self.edges.itens():
-                to_send[dest]= dest.getRel(self)
-            return to_send
+    def getNeighbours(self):  # {neighbour1:relationship from this side}
+        to_send = {}
+        for dest, val in self.edges.itens():
+            to_send[dest] = dest.getRel(self)
+        return to_send
 
-    def recieveDestinations(self,destDict):#{path:(dest1,dest2,...),path2:(dest21,dest22,...)}
+    def recieveDestinations(self, destDict):  # {path:(dest1,dest2,...),path2:(dest21,dest22,...)}
         altered = False
-        for path, list in destDict.itens(): #for all the paths in the list
-            rel=self.edges[path].getRel(self)   #keep a hold of the relationship between the first node on the path and this node
-            for dest in list:               #for all the destinations going through the path node
+        for path, list in destDict.itens():  # for all the paths in the list
+            rel = self.edges[path].getRel(
+                self)  # keep a hold of the relationship between the first node on the path and this node
+            for dest in list:  # for all the destinations going through the path node
                 try:
-                    oldPath=self.edges[self.adverts[dest]].getRel(self) #get the relationship of the last advertizment recieved for the destination
+                    oldPath = self.edges[self.adverts[dest]].getRel(
+                        self)  # get the relationship of the last advertizment recieved for the destination
 
-                    if (oldPath==3 and rel<3) or (oldPath==2 and rel==1):# if this new advert has a more favorable relationship keep it
-                        self.adverts[dest]= path
-                        altered=True
-                except Exception as ex:         #TODO check no dictionary entry exception
-                        self.adverts[dest]= path
-                        altered=True
+                    if (oldPath == 3 and rel < 3) or (
+                            oldPath == 2 and rel == 1):  # if this new advert has a more favorable relationship keep it
+                        self.adverts[dest] = path
+                        altered = True
+                except Exception as ex:  # TODO check no dictionary entry exception
+                    self.adverts[dest] = path
+                    altered = True
         return altered
 
     def isStub(self):
         for edge in self.edges:
-            if edge.getRel()==1:
+            if edge.getRel() == 1:
                 return False
         return True
 
     def isTop(self):
         for edge in self.edges:
-            if edge.getRel()==3:
+            if edge.getRel() == 3:
                 return False
         return True
 
 
-class edge(object):
+class Edge(object):
     """docstring foredge."""
 
-    def __init__(self, node1, node2, relationship):#1
-        super(edge, self).__init__()
+    def __init__(self, node1, node2, relationship):  # 1
+        super(Edge, self).__init__()
         self.nodes = []
         self.nodes.append(node1)
         self.nodes.append(node2)
-        if relationship<4 and relationship>0:
-            self.relationship=relationship # WARNING: DONT USE THIS VALUE, use getRel funtion instead
+        if relationship < 4 and relationship > 0:
+            self.relationship = relationship  # WARNING: DONT USE THIS VALUE, use getRel funtion instead
 
-    def getRel(self,selfnode):
+    def getRelative(self, selfnode):
         try:
             index = self.nodes.index(selfnode)
-            if index==0:
-                return [self.nodes[1],self.relationship]
+            if index == 0:
+                return self.nodes[1]
             else:
-                return [self.nodes[0],invertRelationship(self.relationship)]
+                return self.nodes[0]
         except Exception as ex:
-            print('something went wrong.Node '+selfnode+'tried to be in relationship '+node1+'|'+node2)
+            print('something went wrong.Node ' + selfnode + 'tried to be in relationship ' + self.nodes[0] + '|' + self.nodes[0])
+
+    def getRelationship(self, selfnode):
+        try:
+            index = self.nodes.index(selfnode)
+            if index == 0:
+                return self.relationship
+            else:
+                return invertRelationship(self.relationship)
+        except Exception as ex:
+            print('something went wrong.Node ' + selfnode + 'tried to be in relationship ' + self.nodes[1] + '|' + self.nodes[0])
+
+    def getRel(self, selfnode):
+        try:
+            index = self.nodes.index(selfnode)
+            if index == 0:
+                return [self.nodes[1], self.relationship]
+            else:
+                return [self.nodes[0], invertRelationship(self.relationship)]
+        except Exception as ex:
+            print('something went wrong.Node ' + selfnode + 'tried to be in relationship ' + self.nodes[1] + '|' + self.nodes[0])
 
 
 def invertRelationship(value):
-    if value ==1:
+    if value == 1:
         return 3
-    elif value==3:
+    elif value == 3:
         return 1
     else:
         return value
+
+
+if __name__ == "__main__":
+    grid = Grid()
+    grid.cmdloop()
