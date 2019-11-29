@@ -119,7 +119,10 @@ class Grid(cmd.Cmd):
         reached = False
 
         while nodeList and not reached:
-            min = nodeList.find_min()# currNode = take_smallest(nodeList)#takeSmallerRelationshipNode(nodeList)#TODO change this to be a ordered array or something
+            min = nodeList.find_minimum()# currNode = take_smallest(nodeList)#takeSmallerRelationshipNode(nodeList)#TODO change this to be a ordered array or something
+            min = nodeList.find_minimum()
+            min = nodeList.find_minimum()
+
             currNode = nodeList.delete(min.key,min.value)
             currNode.is_in_collection = False
             if reached and currNode.lastRelationship >= nodeEnd.lastRelationship:

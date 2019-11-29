@@ -14,7 +14,7 @@ https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-006-in
 https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-006-introduction-to-algorithms-fall-2011/lecture-videos/lecture-6-avl-trees-avl-sort/
  
 """
- 
+import math
 class AVLNode(object):
     """A node in the AVL tree."""
  
@@ -97,7 +97,27 @@ class AVLNode(object):
             else:
                 ret_left = None
             return ret_left or ret_right
- 
+
+    def find_minimum(self):
+        """Finds the node with the minimum key in the subtree rooted at this
+        node.
+
+        Returns:
+            The node with the minimum key.
+        """
+        current = self
+        min = math.inf
+        last_min = current
+        while current.left is not None:
+            if min > current.key:
+                min = current.key
+                last_min = current
+            current = current.left
+        if min == current.key:
+            return last_min
+        else:
+            return current
+
     def find_min(self):
         """Finds the node with the minimum key in the subtree rooted at this 
         node.
@@ -106,6 +126,8 @@ class AVLNode(object):
             The node with the minimum key.
         """
         current = self
+        min = math.inf
+        last_min = None
         while current.left is not None:
             current = current.left
         return current
@@ -192,11 +214,15 @@ class AVL(object):
         """
         return self.root and self.root.find(k,value)
  
-    def find_min(self):
+    def find_minimum(self):
         """Returns the minimum node of this BST."""
  
+        return self.root and self.root.find_minimum()
+
+    def find_min(self):
+        """Returns the minimum node of this BST."""
+
         return self.root and self.root.find_min()
- 
     def next_larger(self, k):
         """Returns the node that contains the next larger (the successor) key in
         the BST in relation to the node with key k.
@@ -297,6 +323,7 @@ class AVL(object):
             pseudoroot.left = self.root
             self.root.parent = pseudoroot
             deleted = self.root.delete()
+            to_return=deleted.value
             self.root = pseudoroot.left
             if self.root is not None:
                 self.root.parent = None
@@ -306,7 +333,7 @@ class AVL(object):
         ## which is the first potentially out-of-balance node.
         self.rebalance(deleted.parent)
         return to_return
- 
+
 def test(args=None):
     import random, sys
 
@@ -318,12 +345,15 @@ def test(args=None):
     tree.insert(2, "first")
     tree.insert(2, "second")
     tree.insert(2, "third")
-    tree.insert(1, "the one")
+    tree.insert(1, "the one one")
+    tree.insert(1, "the one two")
+    tree.insert(1, "the one three")
+
     for item in items:
         tree.insert(item, None)
         print()
         print(tree)
-    deleted= tree.find_min()
+    deleted= tree.find_minimum()
     deleted = tree. delete(deleted.key,deleted.value)
     print("took out " +deleted)
     print(tree)
