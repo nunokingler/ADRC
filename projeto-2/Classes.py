@@ -104,17 +104,20 @@ class Grid(cmd.Cmd):
         except Exception as ex:  # one of the nodes is not in the nodeList
             print("node does not exist or node is not integer")
             return None
-        nodeList = list(self.nodes.values())
-
+        #nodeList = list(self.nodes.values()) OLD NODELIST
+        nodeList = []
         for node in self.nodes.values():
             node.resetDistPrev()
+            if node != nodeStart:
+                insert_node_ordered_array (nodeList,node)
         nodeStart.dist = 0
         nodeStart.prev = None
         nodeStart.lastRelationship = 4
+        insert_node_ordered_array(nodeList,nodeStart)
         reached = False
 
         while nodeList:
-            currNode = takeSmallerRelationshipNode(nodeList)#TODO change this to be a ordered array or something
+            currNode = take_smallest(nodeList)#takeSmallerRelationshipNode(nodeList)#TODO change this to be a ordered array or something
             if reached and currNode.lastRelationship >= nodeEnd.lastRelationship:
                 break
             for edge in list(currNode.edges.values()):
@@ -123,16 +126,25 @@ class Grid(cmd.Cmd):
                     if relative.dist > currNode.dist + 1:  # +1 for each edge
                         relative.dist = currNode.dist + 1
                         relative.prev = currNode
+                        if relative.lastRelationship != edge.getRelationship(relative):
+                            nodeList.remove(relative)
+                            insert_node_ordered_array(nodeList,relative)
                         relative.lastRelationship = edge.getRelationship(relative)
                 elif currNode.lastRelationship == 2:
                     if (relative.lastRelationship == 2 or relative.lastRelationship==0) and relative.dist > currNode.dist+1 and edge.getRelationship(currNode)!= 2:
                         relative.dist = currNode.dist + 1
                         relative.prev = currNode
+                        if relative.lastRelationship != 2:
+                            nodeList.remove(relative)
+                            insert_node_ordered_array(nodeList,relative)
                         relative.lastRelationship = 2
                 elif currNode.lastRelationship == 3:
                     if edge.getRelationship(currNode) == 1 and relative.dist>currNode.dist+1:#if current node is provider
                         relative.dist = currNode.dist + 1
                         relative.prev = currNode
+                        if relative.lastRelationship != edge.getRelationship(relative):
+                            nodeList.remove(relative)
+                            insert_node_ordered_array(nodeList,relative)
                         relative.lastRelationship = edge.getRelationship(relative)
 
                 if relative.ID == nodeEnd.ID and not math.isinf(relative.dist):
@@ -228,6 +240,45 @@ class Grid(cmd.Cmd):
             pathNode = pathNode.prev
         return (pathNode, jump_number)
 
+def insert_node_ordered_array(list,insert_node):
+    last_node = Node(-1)
+    last_node.dist = 0
+    last_node.lastRelationship = 4
+    found = False
+    for i, current_node in enumerate(list):
+        if insert_node.lastRelationship > current_node.lastRelationship:
+            list.insert(i,insert_node)
+            found = True
+            break
+
+        if insert_node.dist < current_node.dist and insert_node.dist > last_node.dist and insert_node.lastRelationship == current_node.lastRelationship:
+            list.insert(i, insert_node)
+            found = True
+            break
+        last_node = current_node
+    if not found:
+        list.append(insert_node)
+
+def take_smallest(list):
+    if not list:
+        return None
+    accepted_relationships = list[0].lastRelationship
+    lastNode = Node(-1)
+    lastNode.lastRelationship = accepted_relationships
+    lastNode.dist = 0
+    to_return = None
+    max = math.inf
+    for i, node in enumerate(list):
+        if node.lastRelationship < accepted_relationships:
+            list.remove(to_return)
+            return to_return
+        if node.dist < max:
+            max = node.dist
+            to_return = node
+    list.remove(to_return)
+    return to_return
+
+
 
 def takeSmallerDistanceNode(list):
     max = math.inf
@@ -243,7 +294,7 @@ def takeSmallerDistanceNode(list):
 def takeSmallerRelationshipNode(list):
     max = 0
     to_return = None
-
+    accepted_relationship = list[0].lastRelationship
     for i, node in enumerate(list):
         if node.lastRelationship > max:
             max = node.lastRelationship
