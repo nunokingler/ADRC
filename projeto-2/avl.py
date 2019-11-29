@@ -65,7 +65,7 @@ class AVLNode(object):
     def __str__(self):
         return '\n'.join(self._str()[0])
  
-    def find(self, k):
+    def find(self, k,value ):
         """Finds and returns the node with key k from the subtree rooted at this 
         node.
  
@@ -75,18 +75,28 @@ class AVLNode(object):
         Returns:
             The node with key k.
         """
-        if k == self.key:
+        if k == self.key and value == self.value:
             return self
         elif k < self.key:
             if self.left is None:
                 return None
             else:
-                return self.left.find(k)
-        else:
+                return self.left.find(k, value)
+        elif k > self.key:
             if self.right is None:  
                 return None
             else:
-                return self.right.find(k)
+                return self.right.find(k, value)
+        else:
+            if self.right:
+                ret_right = self.right.find(k, value)
+            else:
+                ret_right = None
+            if self.left:
+                ret_left = self.left.find(k, value)
+            else:
+                ret_left = None
+            return ret_left or ret_right
  
     def find_min(self):
         """Finds the node with the minimum key in the subtree rooted at this 
@@ -170,7 +180,7 @@ class AVL(object):
         if self.root is None: return '<empty tree>'
         return str(self.root)
  
-    def find(self, k):
+    def find(self, k,value):
         """Finds and returns the node with key k from the subtree rooted at this 
         node.
  
@@ -180,7 +190,7 @@ class AVL(object):
         Returns:
             The node with key k or None if the tree is empty.
         """
-        return self.root and self.root.find(k)
+        return self.root and self.root.find(k,value)
  
     def find_min(self):
         """Returns the minimum node of this BST."""
@@ -268,7 +278,7 @@ class AVL(object):
             self.root.insert(node)
         self.rebalance(node)
  
-    def delete(self, k):
+    def delete(self, k,value):
         """Deletes and returns a node with key k if it exists from the BST.
         This AVL version guarantees the balance property: h = O(lg n).
  
@@ -278,7 +288,7 @@ class AVL(object):
         Returns:
             The deleted node with key k.
         """
-        node = self.find(k)
+        node = self.find(k,value)
         if node is None:
             return None
         to_return = node.value
@@ -305,14 +315,18 @@ def test(args=None):
  
     tree = AVL()
     print(tree)
-    tree.insert(1, "first")
-    tree.insert(1, "second")
+    tree.insert(2, "first")
+    tree.insert(2, "second")
+    tree.insert(2, "third")
+    tree.insert(1, "the one")
     for item in items:
         tree.insert(item, None)
         print()
         print(tree)
-    print("took out " +tree.delete(1))
+    deleted= tree.find_min()
+    deleted = tree. delete(deleted.key,deleted.value)
+    print("took out " +deleted)
     print(tree)
-    print("took out " +tree.delete(1))
+    print("took out " +tree.delete(2, "second"))
     print(tree)
 if __name__ == '__main__': test()

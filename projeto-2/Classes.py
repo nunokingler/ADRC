@@ -1,6 +1,7 @@
 import math
 import os
 import cmd
+import avl
 
 
 class CouldNotOpenFile(Exception):
@@ -105,47 +106,49 @@ class Grid(cmd.Cmd):
             print("node does not exist or node is not integer")
             return None
         #nodeList = list(self.nodes.values()) OLD NODELIST
-        nodeList = []
+        #nodeList = []
+        nodeList = avl.AVL()
         for node in self.nodes.values():
             node.resetDistPrev()
             if node != nodeStart:
-                insert_node_ordered_array (nodeList,node)
+               # insert_node_ordered_array (nodeList,node)
+                nodeList.insert(node.dist,node)
         nodeStart.dist = 0
         nodeStart.prev = None
         nodeStart.lastRelationship = 4
-        insert_node_ordered_array(nodeList,nodeStart)
+        #insert_node_ordered_array(nodeList,nodeStart)
+        nodeList.insert(nodeStart.dist,nodeStart)
         reached = False
 
-        while nodeList:
-            currNode = take_smallest(nodeList)#takeSmallerRelationshipNode(nodeList)#TODO change this to be a ordered array or something
+        while nodeList and not reached:
+            min = nodeList.find_min()# currNode = take_smallest(nodeList)#takeSmallerRelationshipNode(nodeList)#TODO change this to be a ordered array or something
+            currNode = nodeList.delete(min.key,min.value)
             if reached and currNode.lastRelationship >= nodeEnd.lastRelationship:
                 break
             for edge in list(currNode.edges.values()):
                 relative = edge.getRelative(currNode)
                 if currNode.lastRelationship == 1 or currNode.lastRelationship == 4:
                     if relative.dist > currNode.dist + 1:  # +1 for each edge
+                        nodeList.delete(relative.dist,relative)
                         relative.dist = currNode.dist + 1
                         relative.prev = currNode
-                        if relative.lastRelationship != edge.getRelationship(relative):
-                            nodeList.remove(relative)
-                            insert_node_ordered_array(nodeList,relative)
                         relative.lastRelationship = edge.getRelationship(relative)
+                        nodeList.insert(relative.dist,relative)
                 elif currNode.lastRelationship == 2:
                     if (relative.lastRelationship == 2 or relative.lastRelationship==0) and relative.dist > currNode.dist+1 and edge.getRelationship(currNode)!= 2:
+                        nodeList.delete(relative.dist,relative)
                         relative.dist = currNode.dist + 1
                         relative.prev = currNode
-                        if relative.lastRelationship != 2:
-                            nodeList.remove(relative)
-                            insert_node_ordered_array(nodeList,relative)
                         relative.lastRelationship = 2
+                        nodeList.insert(relative.dist,relative)
+
                 elif currNode.lastRelationship == 3:
                     if edge.getRelationship(currNode) == 1 and relative.dist>currNode.dist+1:#if current node is provider
+                        nodeList.delete(relative.dist,relative)
                         relative.dist = currNode.dist + 1
                         relative.prev = currNode
-                        if relative.lastRelationship != edge.getRelationship(relative):
-                            nodeList.remove(relative)
-                            insert_node_ordered_array(nodeList,relative)
                         relative.lastRelationship = edge.getRelationship(relative)
+                        nodeList.insert(relative.dist,relative)
 
                 if relative.ID == nodeEnd.ID and not math.isinf(relative.dist):
                     reached = True
